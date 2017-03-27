@@ -7,7 +7,9 @@
 %           Do we factor in cost to this program or do we need to 
 %           calculate that separately and use it as a justification?
 %
-% Last Edit: Emily Schott Mar 24 8:15 pm
+% Last Edit: Jillian Hestle Mar 27 5:15 pm
+
+
 
 %% Input Variables
 
@@ -20,7 +22,7 @@ L = 0; %length of pipe, m
 Hdw = 0; %head loss of water, m
 
 depth = 0; %reservoir depth, m
-H = 0; %elevation of bottom of reservoir, m
+elevation = 0; %elevation of bottom of reservoir, m
 
 Qpump = 0; %volumetric flow rate of pump, m^3/s
 Qturbine = 0; %volumetric flow rate of turbine, m^3/s
@@ -44,13 +46,15 @@ waterHeight = 0; %height of water in reservoir, m
 waterCM = 0; %center of mass of water in reservoir, m
 waterMass = 0; %mass of water in reservoir, kg
 
-velocity = 0; %velocity of water in pipes, m/s
+velocityUp = 0; %velocity of water in pipes going up, m/s
+velocityDown = 0; %velocity of water in pipes going down, m/s
 Hdw = 0; %friction loss in pipes
 
 k = 0; %kinetic energy of water, J
 u = 0; %potential energy of water, J
 massDisp = 0; %mass of water displaced in pipes, kg
 work = 0; %work done by pump, J
+
 %% Hard Coded Values
 
 eOut = 120; %MWh
@@ -68,13 +72,15 @@ D = input('Pipe diameter in meters: ');
 L = input('Pipe length in meters: ');
 f = input('Pipe friction factor: ');
 depth = input('Reservoir depth in meters: ');
-H = input('Elevation of bottom of reservoir in meters: ');
+elevation = input('Elevation of bottom of reservoir in meters: ');
 Qpump = input('Volumetric flow rate of pump in m^3/s: ');
 Qturb = input('Volumetric flow rate of turbine in m^3/s: ');
 K1 = input('Bend coefficient 1: ');
 K2 = input('Bend coefficient 2: ');
 
 % All kinds of crazy calculations
+velocityUp = Qpump / pi * pow((D * 0.5), 2);
+velocityDown = Qturbine / pi * pow((D * 0.5), 2);
 
 % Outputs
 
@@ -109,7 +115,7 @@ end
 
 %total system efficiency
 function efficiency = totalEfficiency(eIn, eOut)
-    efficiency  = eOut/eIn;
+    efficiency = eOut/eIn;
 end
 
 %work done by pump
