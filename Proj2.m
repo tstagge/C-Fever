@@ -2,12 +2,6 @@
 % Project 2
 % Team 57
 % Tyler Stagge, Nicholas Vilbrandt, Jillian Hestle, Emily Schott
-%
-% Notes:    Dependent on site used; need to decide
-%           Do we factor in cost to this program or do we need to 
-%           calculate that separately and use it as a justification?
-%
-% Last Edit: Emily Schott Mar 24 8:15 pm
 
 %% Input Variables
 
@@ -78,7 +72,7 @@ K2 = input('Bend coefficient 2: ');
 
 % Outputs
 
-fprintf('Reservoir surface area: %.2f m^2\n', A);
+fprintf('\nReservoir surface area: %.2f m^2\n', A);
 fprintf('Input energy: %.2f MWh\n', eIn);
 fprintf('System efficiency: %.2f\n', ns);
 fprintf('Time to fill: %.2f hours\n', timeFill);
