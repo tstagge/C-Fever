@@ -160,7 +160,7 @@ function velocity = FluidVelocity(q, d)
 end
 
 %input xi as an array for multiple bends
-%returns a 2D array of masses and heights and plots it
+%
 function massHeight = Masefield(Eout, nT, f, L, D, xi, q, d)
     velocity = FluidVelocity(q, d);
     lossOut = Eout(1/nT);
