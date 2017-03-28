@@ -69,8 +69,8 @@ dWater = 1000; %density of water, kg/m^3
 2elevAngle = 60; %degrees
 2maxArea = 25,617.38; %m^2
 2maxVol = 512,347.54; %m^3
-2numBends = 1;
-2bendAngles = [60]; %degrees
+2numBends = 0;
+2bendAngles = [0]; %degrees
 
 
 %Site 3
@@ -119,8 +119,8 @@ fprintf('Time to empty: %.2f hours\n', timeEmpty);
 %time to empty 
 
 %friction loss in the pipes
-function Hdw = frictionLoss(f,len,vel,diam,g)
-    Hdw = (f * (len / diam)) * ((vel ^ 2) / (2 * g));
+function Hdw = frictionLoss(f,len,vel,diam,mass)
+    Hdw = (f * (len)) * (mass) * ((vel ^ 2) / (2 * diam));
 end
 
 %kinetic energy of water
@@ -143,5 +143,36 @@ function work = workPump(len, g, angle, fConst)
     work = len * (g * cos(angle) + g * fConst * cos(angle));
     %pretty sure this is work to overcome gravity plus friction
 end
-    
 
+%energy lost by the turbine, will be positive
+function loss = ETurbineLoss(eOut, nT)
+    loss = eOut(1/nT - 1);
+end
+
+%energy lost by pipe fittings, will be positive
+function fits = EFittingLoss(m, xi, V)
+    fits = m(xi * (V ^ 2)/ 2);
+end
+
+%calculates velocity of fluid using volume flow and pipe diameter
+function velocity = FluidVelocity(q, d)
+    velocity = 1.273*(q / (d^2));
+end
+
+%input xi as an array for multiple bends
+%
+function massHeight = Masefield(Eout, nT, f, L, D, xi, q, d)
+    velocity = FluidVelocity(q, d);
+    lossOut = Eout(1/nT);
+    heights = [2.5:.01:10];
+    gravH = 9.81 .* heights;
+    frictionLoss = (f * L * velocity) / (2 * D);
+    for i = 1:length(xi)
+        lossBend(i) = xi(i) * (velocity ^ 2) / 2;
+    end
+    lossBendTotal = sum(lossBend);
+    bottom = gravH - frictionLoss - lossBendTotal;
+    masses = lossOut ./ bottom;
+    plot(heights, masses);
+    massHeight = [heights, masses];
+end
