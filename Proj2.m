@@ -145,13 +145,13 @@ function timeEmpty = timeToEmpty(waterVol, Qturbine)
 end
 
 %friction loss in the pipes
-function Hdw = frictionLoss(f,len,velocity,diam,g)
-    Hdw = (f * (len / diam)) * ((velocity ^ 2) / (2 * g));
+function Hdw = frictionLoss(f,len,vel,diam,g)
+    Hdw = (f * (len / diam)) * ((vel ^ 2) / (2 * g));
 end
 
 %kinetic energy of water
-function k = kineticEnergy(mass, velocity)
-    k = 0.5 * mass * velocity^2;
+function k = kineticEnergy(mass, vel)
+    k = 0.5 * mass * vel^2;
 end
 
 %potential energy of water
