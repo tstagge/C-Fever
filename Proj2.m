@@ -161,10 +161,10 @@ end
 
 %input xi as an array for multiple bends
 %returns a 2D array of masses and heights and plots it
-function massHeight = Masefield(Eout, nT, f, L, D, xi, q, d)
+function massHeight = Masefield(Eout, nT, f, L, D, xi, q, d, h)
     velocity = FluidVelocity(q, d);
     lossOut = Eout(1/nT);
-    heights = [2.5:.01:10];
+    heights = [2.5+h:.01:10+h];
     gravH = 9.81 .* heights;
     frictionLoss = (f * L * velocity) / (2 * D);
     for i = 1:length(xi)
