@@ -176,3 +176,15 @@ function massHeight = Masefield(Eout, nT, f, L, D, xi, q, d, h)
     plot(heights, masses);
     massHeight = [heights, masses];
 end
+
+function EIn = EnergyInRequired(m, nP, f, L, D, xi, q, d, h)
+    velocity = FluidVelocity(q, d);
+    ePotential = potentialEnergy(m, 9.81, h);
+    frictionLoss = frictionLoss(f,L,velocity,d,m);
+    for i = 1:length(xi)
+        lossBend(i) = (xi(i) * (velocity ^ 2) / 2) * m;
+    end
+    lossBendTotal = sum(lossBend);
+    top = ePotential + fictionLoss + lossBendTotal;
+    EIn = top / (-nP);
+end
