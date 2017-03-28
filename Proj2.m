@@ -69,8 +69,8 @@ dWater = 1000; %density of water, kg/m^3
 2elevAngle = 60; %degrees
 2maxArea = 25,617.38; %m^2
 2maxVol = 512,347.54; %m^3
-2numBends = 1;
-2bendAngles = [60]; %degrees
+2numBends = 0;
+2bendAngles = [0]; %degrees
 
 
 %Site 3
