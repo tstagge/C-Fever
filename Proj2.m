@@ -186,5 +186,5 @@ function EIn = EnergyInRequired(m, nP, f, L, D, xi, q, d, h)
     end
     lossBendTotal = sum(lossBend);
     top = ePotential + fictionLoss + lossBendTotal;
-    EIn = top / (-nP);
+    EIn = top / (nP);
 end
