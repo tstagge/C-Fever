@@ -79,6 +79,7 @@ eOut = 120; %MWh
 
 numCombos = 0;
 leastEIn = 100000000000;
+eIns = [];
 
 fprintf('Starting loop from hell...\n');
 for(iSite = 1:siteN) %Index
@@ -137,6 +138,7 @@ for(iSite = 1:siteN) %Index
                                 heightCOM = hm(1,1); %FIXME: currently just choosing the first height-mass combo
                                 massTot = hm(1,2);
                                 eIn = energyInRequired(massTot,pumpN,pipeF,pipeL,bendKs,pumpQ,pipeD,heightCOM);
+                                eIns = [eIns, eIn];
                                 if(eIn < leastEIn)
                                     leastEIn = eIn;
                                 end
