@@ -34,6 +34,7 @@ pumpsNumEfficiencies = pumpsRawDim(2)-1; %Number of qualities of pumps in catalo
 
 pumpsEfficiencies = pumpsRaw(1,1:pumpsNumEfficiencies); %Row array of efficiencies corresponding to quality
 pumpsEPR = pumpsRaw(2:end,1); %Column array of EPRs
+pumpsNumEPR = length(pumpsEPR);
 pumpsCostPerQ = pumpsRaw(2:end, 2:end); %Rows vary EPR; Columns vary quality
 
 %TURBINES
@@ -44,6 +45,7 @@ turbinesNumEfficiencies = turbinesRawDim(2)-1; %Number of qualities of turbines 
 
 turbinesEfficiencies = turbinesRaw(1,1:turbinesNumEfficiencies); %Row array of efficiencies corresponding to quality
 turbinesEPD = turbinesRaw(2:end,1); %Column array of EPDs
+turbinesNumEPD = length(turbinesEPD);
 turbinesCostPerQ = turbinesRaw(2:end, 2:end); %Rows vary EPD; Columns vary quality
 
 %% SITE DATA
@@ -115,6 +117,7 @@ optBendKs = [];
 optSite = 0;
 optM = 0;
 optHcom = 0;
+optCost = 0; %Recall -- opt in terms of efficiency!
 
 highestN = 0;
 eIns = [];
@@ -138,28 +141,52 @@ for(iSite = 1:siteN) %Index
                             pipeL = siteNminPipeL(iSite);
                             siteH = siteNheight(iSite);
                             bendKs = siteNbendKs(iSite);
-
+                            
                             %----------ENERGY CALCULATIONS-----------
                             %masefield(Eout, nT, f, L, xi, q, d, h)
                             %energyInRequired(m, nP, f, L, xi, q, d, h)
                             hm = masefield(eOut,turbN,pipeF,pipeL,bendKs,turbQ,pipeD,siteH); %Note: assuming the q in the masefield parameters is turbQ and not pumpQ
-                            
-                            %heightCOM = hm(1,1); %FIXME: currently just choosing the first height-mass combo
-                            %massTot = hm(2,1);
-                            
                             numHM = length(hm);
                             for(iHM = 1:numHM)
-                                if(hm(2,iHM) > 0) %If mass > 0
+                                if(hm(2,iHM) > 0) %SANITY CHECK 1; If mass > 0
                                
                                     waterVol = hm(2, iHM) / 1000;
-
                                     area = reservoirSurfaceArea(waterVol, (hm(1,iHM) - siteH) * 2);
-
                                     timeFill = timeToFill(waterVol, pumpQ); %h
                                     timeEmpty = timeToEmpty(waterVol, turbQ); %h
                                     
-                                    if ((timeFill < 12) && (timeEmpty < 12) && (area < siteNmaxArea(iSite))) 
+                                    if ((timeFill < 12) && (timeEmpty < 12) && (area < siteNmaxArea(iSite))) %SANITY CHECK 2
                                         eIn = energyInRequired(hm(2,iHM),pumpN,pipeF,pipeL,bendKs,pumpQ,pipeD,hm(1,iHM));
+                                        
+                                        %%-----------COST CALCULATIONS-------------
+                                        hTopOfRes = siteH + (2*(hm(1,iHM)-siteH));
+                                        hWall = 2*(hm(1,iHM)-siteH);
+                                        
+                                        %Find indices for pumpEPR and turbEPD
+                                        i = 1;
+                                        while((pumpsEPR(i) < hTopOfRes) && (i < pumpsNumEPR))
+                                            i = i + 1;
+                                        end
+                                        iPumpEPR = i;
+                                        i = 1;
+                                        while((turbinesEPD(i) < hTopOfRes) && (i < turbinesNumEPD))
+                                            i = i + 1;
+                                        end
+                                        iTurbEPD = i;
+
+                                        pipeCost = pipeL * pipesCosts(iPipeD, iPipeF);
+                                        turbCost = turbQ * turbinesCostPerQ(iTurbEPD, iTurbN);
+                                        pumpCost = pumpQ * pumpsCostPerQ(iPumpEPR, iPumpN);
+                                        bendCost = 0; %FIXME!!!
+                                        siteCost = siteNroadCost(iSite) + siteNadditionalCost(iSite) + (siteNprepCostPerArea(iSite) * area); %FIXME: where is area calculated?
+                                        wallCost = costOfWall(hWall, (2 * pi) * sqrt(area / pi)); 
+
+                                        totalCost = pipeCost + turbCost + pumpCost + bendCost + siteCost + wallCost;
+
+                                        %-----------RATING------------------------
+                                        TDR = getTotalDesignRating(eIn, totalCost);
+                                        
+                                        %----------RECORDING OPT----------
                                         if(eIn < leastEIn) %Temporary until we can actually rank based on TDR
                                             leastEIn = eIn;
                                             optPipeD = pipeD;
@@ -173,6 +200,7 @@ for(iSite = 1:siteN) %Index
                                             optHcom = hm(1,iHM);
                                             optM = hm(2,iHM);
                                             efficiency = 120 / leastEIn;
+                                            optCost = totalCost;
                                         end
                                         numValid = numValid + 1;
                                     end
@@ -185,20 +213,7 @@ for(iSite = 1:siteN) %Index
 %                                 highestN = (eOut/eIn);
 %                             end
 
-                            %-----------COST CALCULATIONS-------------
-%                             hTopOfRes = siteH + (2*(heightCOM-siteH));
-% 
-%                             pipeCost = pipeL * pipesCosts(iPipeD, iPipeF);
-%                             turbCost = turbQ * turbinesCostPerQ(hTopOfRes, iTurbN);
-%                             pumpCost = pumpQ * pumpsCostPerQ(hTopOfRes, iPumpN);
-%                             bendCost = 0; %FIXME!!!
-%                             siteCost = siteNroadCost(iSite) + siteNadditionalCost(iSite) + (siteNprepCostPerArea(iSite) * 1); %FIXME: where is area calculated?
-%                             wallCost = 0; 
-%
-%                             totalCost = pipeCost + turbCost + pumpCost + bendCost + siteCost + wallCost;
-% 
-%                             %-----------RATING------------------------
-%                             TDR = getTotalDesignRating(eIn, totalCost);
+                            
 % 
                              
                         end
