@@ -103,6 +103,7 @@ eOut = 120; %MWh
 % bend loss coefficient
 
 numCombos = 0;
+numValid = 0;
 leastEIn = 100000000000;
 optPipeD = 0;
 optPipeF = 0;
@@ -112,7 +113,8 @@ optPumpN = 0;
 optPumpQ = 0;
 optBendKs = [];
 optSite = 0;
-optHM = [[];[]];
+optM = 0;
+optHcom = 0;
 
 highestN = 0;
 eIns = [];
@@ -141,23 +143,44 @@ for(iSite = 1:siteN) %Index
                             %masefield(Eout, nT, f, L, xi, q, d, h)
                             %energyInRequired(m, nP, f, L, xi, q, d, h)
                             hm = masefield(eOut,turbN,pipeF,pipeL,bendKs,turbQ,pipeD,siteH); %Note: assuming the q in the masefield parameters is turbQ and not pumpQ
-                            heightCOM = hm(1,1); %FIXME: currently just choosing the first height-mass combo
-                            massTot = hm(2,1);
-                            eIn = energyInRequired(massTot,pumpN,pipeF,pipeL,bendKs,pumpQ,pipeD,heightCOM);
-                            %eIns = [eIns, eIn]; %Keeps track of all (^t)
-                            if(eIn < leastEIn) %Temporary until we can actually rank based on TDR
-                                leastEIn = eIn;
-                                optPipeD = pipeD;
-                                optPipeF = pipeF;
-                                optTurbN = turbN;
-                                optTurbQ = turbQ;
-                                optPumpN = pumpN;
-                                optPumpQ = pumpQ;
-                                optSite = iSite;
-                                optBendKs = bendKs;
-                                optHcom = heightCOM;
-                                optHM = hm;
+                            
+                            %heightCOM = hm(1,1); %FIXME: currently just choosing the first height-mass combo
+                            %massTot = hm(2,1);
+                            
+                            numHM = length(hm);
+                            for(iHM = 1:numHM)
+                                if(hm(2,iHM) > 0) %If mass > 0
+                               
+                                    waterVol = hm(2, iHM) / 1000;
+
+                                    area = reservoirSurfaceArea(waterVol, (hm(1,iHM) - siteH) * 2);
+
+                                    timeFill = timeToFill(waterVol, pumpQ); %h
+                                    timeEmpty = timeToEmpty(waterVol, turbQ); %h
+                                    
+                                    if ((timeFill < 12) && (timeEmpty < 12) && (area < siteNmaxArea(iSite))) 
+                                        eIn = energyInRequired(hm(2,iHM),pumpN,pipeF,pipeL,bendKs,pumpQ,pipeD,hm(1,iHM));
+                                        if(eIn < leastEIn) %Temporary until we can actually rank based on TDR
+                                            leastEIn = eIn;
+                                            optPipeD = pipeD;
+                                            optPipeF = pipeF;
+                                            optTurbN = turbN;
+                                            optTurbQ = turbQ;
+                                            optPumpN = pumpN;
+                                            optPumpQ = pumpQ;
+                                            optSite = iSite;
+                                            optBendKs = bendKs;
+                                            optHcom = hm(1,iHM);
+                                            optM = hm(2,iHM);
+                                            efficiency = 120 / leastEIn;
+                                        end
+                                        numValid = numValid + 1;
+                                    end
+                                end
+                                numCombos = numCombos + 1;
                             end
+                            
+                            
 %                             if((eOut/eIn) > highestN)
 %                                 highestN = (eOut/eIn);
 %                             end
@@ -170,13 +193,14 @@ for(iSite = 1:siteN) %Index
 %                             pumpCost = pumpQ * pumpsCostPerQ(hTopOfRes, iPumpN);
 %                             bendCost = 0; %FIXME!!!
 %                             siteCost = siteNroadCost(iSite) + siteNadditionalCost(iSite) + (siteNprepCostPerArea(iSite) * 1); %FIXME: where is area calculated?
-% 
-%                             totalCost = pipeCost + turbCost + pumpCost + bendCost + siteCost;
+%                             wallCost = 0; 
+%
+%                             totalCost = pipeCost + turbCost + pumpCost + bendCost + siteCost + wallCost;
 % 
 %                             %-----------RATING------------------------
 %                             TDR = getTotalDesignRating(eIn, totalCost);
 % 
-                             numCombos = numCombos + 1;
+                             
                         end
                     end
                 end
@@ -185,7 +209,9 @@ for(iSite = 1:siteN) %Index
     end
 end
 
-fprintf('Total design combinations tried: %d\n', numCombos');
+fprintf('Total design combinations tried: %d\n', numCombos);
+fprintf('Total valid designs tried: %d\n', numValid);
+fprintf('Percent valid: %f%%\n', ((numValid/numCombos)*100) );
 fprintf('Minimum Energy-In found: %f\n', leastEIn);
 %fprintf('Highest efficiency found: %f\n', highestN);
 
