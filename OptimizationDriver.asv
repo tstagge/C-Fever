@@ -14,8 +14,7 @@ siteNmaxArea = [360000, 25617.38, 39760.78]; %m^2
 siteNmaxVol = [7200000, 512347.54, 795215.64]; %m^3; why not just calculate?
 siteNnumBends = [0,1,1];
 %siteNbendAngles = [[0], [60], [115]]; %deg
-%siteNbendAngleIs = [[0], [4], [1]]; %Temporary simplification; Note: I'm pretty sure 115 is supposed to be 25, and I'm rounding it to 20
-siteNbendAngleIs = [[0]; [4]; [1]]; %Need to add
+siteNbendAngleIs = [[0], [4], [1]]; %Temporary simplification; Note: I'm pretty sure 115 is supposed to be 25, and I'm rounding it to 20
 
 siteN = length(siteNheight); %Number of sites
 
@@ -77,7 +76,7 @@ eOut = 120; %MWh
 % bend diameter = pipe diameter
 % bend loss coefficient
 
-numCombos = 0;
+numCombos = 1;
 leastEIn = 100000000000;
 
 fprintf('Starting loop from hell...\n');
@@ -85,9 +84,9 @@ for(iSite = 1:siteN) %Index
     for(iPipeD = 1:pipesNumDiameters) %Index
         for(iPipeF = 1:pipesNumFric) %Index
             for(iTurbN = 1:turbinesNumEfficiencies) %Index
-                for(turbQ = 1:100:500) %Value! (Step will certainly be adjusted)
+                for(turbQ = 1:10:500) %Value! (Step will certainly be adjusted)
                     for(iPumpN = 1:pumpsNumEfficiencies) %Index
-                        for(pumpQ = 1:100:500) %Value! (Step will certainly be adjusted)
+                        for(pumpQ = 1:10:500) %Value! (Step will certainly be adjusted)
                             for(iBendK = 1:fittingsNumLossK) % Index
                                 %Temp var assignment
                                 pipeD = pipesDiameters(iPipeD);
@@ -109,20 +108,10 @@ for(iSite = 1:siteN) %Index
                                 % corresponding single bend or multiple
                                 % bends that gets close -- that'll be
                                 % complicated -- gonna be its own fn
-                                bendKs = [];
                                 for(i = 1:siteN)
-                                    if(~(siteNnumBends(i) == 0))
-                                        %fprintf('Hello');
-                                        for(j = 1:siteNnumBends(i))
-                                            %fprintf('%d\n', fittingsLossK(siteNbendAngleIs(i,j)));
-                                            bendKs = [bendKs, fittingsLossK(siteNbendAngleIs(i,j))];
-                                        end
-                                    else
-                                        %fprintf('Goodbye');
-                                        bendKs = [bendKs, 0];
-                                    end
+                                    bendKs = [bendKs
                                 end
-                                %bendKs = fittingsLossK(siteNbendAngleIs);
+                                bendKs = fittingsLossK(siteNbendAngleIs);
                                 %if(siteNnumBends(iSite) != 0)
                                 %    for(bends
                                 %end
@@ -132,7 +121,7 @@ for(iSite = 1:siteN) %Index
                                 
                                 %Note: assuming the q in the masefield
                                 % parameters is turbQ and not pumpQ
-                                hm = masefield(eOut,turbN,pipeF,pipeL,bendKs,turbQ,pipeD,siteH);
+                                hm = masefield(eOut,turnN,pipeF,pipeL,bendKs,turbQ,pipeD,siteH);
                                 
                                 heightCOM = hm(1,1); %FIXME: currently just choosing the first height-mass combo
                                 massTot = hm(1,2);

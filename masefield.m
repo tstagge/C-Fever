@@ -1,4 +1,6 @@
-%input xi as an array for multiple bends
+%IN(notes) xi as an array for multiple bends
+% h is the elevation of the reservoir? (the bottom?) -- NICK, COMMENT ON
+% THIS
 %returns a 2D array of masses and heights and plots it
 function massHeight = masefield(Eout, nT, f, L, xi, q, d, h)
     velocity = fluidVelocity(q, d);
