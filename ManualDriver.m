@@ -31,6 +31,8 @@ xi = [K1, K2];
 
 massHeights = masefield(Eout, nt, f, len, xi, Qturbine, diam, elevation);
 
+mass = 1.07E9;
+
 eInReq = energyInRequired(mass, np, f, len, xi, Qpump, diam, elevation + (depth/2));
 
 waterVol = mass / 1000;

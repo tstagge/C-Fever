@@ -2,6 +2,8 @@
 %calculates the energy required to pump up a mass of water
 %NICK -- what did we say? h is the heightCOM? or the siteHeight? (the
 % former, right?)
+%takes in height of center of mass - height of resevoir plus half of the
+%depth of the resevoir
 function EIn = energyInRequired(m, nP, f, L, xi, q, d, h)
     velocity = fluidVelocity(q, d);
     ePotential = potentialEnergy(m, h);
