@@ -3,35 +3,46 @@
 %% SITE DATA (Currently copied from main Proj2.m file)
 
 %Site 1
-1height = 30; %m
-1distRiver = 60; %m
-1minPipeLen = 67.08; %m
-1elevAngle = 30; %degrees
-1maxArea = 360,000; %m^2
-1maxVol = 7,200,000; %m^3
-1numBends = 0;
-1bendAngles = [0]; %degrees
+site1height = 30; %m
+site1distRiver = 60; %m
+site1minPipeLen = 67.08; %m
+site1elevAngle = 30; %degrees
+site1maxArea = 360,000; %m^2
+site1maxVol = 7,200,000; %m^3
+site1numBends = 0;
+site1bendAngles = [0]; %degrees
 
 %Site 2
-2height = 100; %m
-2distRiver = 130; %m
-2minPipeLen = 253.21; %m
-2elevAngle = 60; %degrees
-2maxArea = 25,617.38; %m^2
-2maxVol = 512,347.54; %m^3
-2numBends = 1;
-2bendAngles = [60]; %degrees
+site2height = 100; %m
+site2distRiver = 130; %m
+site2minPipeLen = 253.21; %m
+site2elevAngle = 60; %degrees
+site2maxArea = 25,617.38; %m^2
+site2maxVol = 512,347.54; %m^3
+site2numBends = 1;
+site2bendAngles = [60]; %degrees
 
 
 %Site 3
-3height = 65; %m
-3distRiver = 91.2; %m
-3minPipeLen = 114.56; %m
-3elevAngle = 45.46; %degrees
-3maxArea = 39,760.78; %m^2
-3maxVol = 795,215.64; %m^3
-3numBends = 1;
-3bendAngles = [115]; %degrees
+site3height = 65; %m
+site3distRiver = 91.2; %m
+site3minPipeLen = 114.56; %m
+site3elevAngle = 45.46; %degrees
+site3maxArea = 39,760.78; %m^2
+site3maxVol = 795,215.64; %m^3
+site3numBends = 1;
+site3bendAngles = [115]; %degrees
+
+%% SITE DATA, REDUX
+
+siteNheight = [30, 100, 65]; %m
+siteNdistRiver = [60, 130, 91.2]; %m
+siteNminPipeL = [67.08, 253.21, 114.56]; %m
+siteNelevAngle = [30, 60, 45.46]; %deg
+siteNmaxArea = [360000, 25617.38, 39760.78]; %m^2
+siteNmaxVol = [7200000, 512347.54, 795215.64]; %m^3
+siteNnumBends = [0,1,1];
+siteNbendAngles = [[0], [60], [115]]; %deg
 
 %% CATALOG DATA INPUT
 
@@ -80,5 +91,10 @@ turbinesCostPerQ = turbinesRaw(2:end, 2:end); %Rows vary EPD; Columns vary quali
 % Masefield(Eout, nT, f, L, D, xi, q, d, h)
 % EnergyInRequired(m, nP, f, L, D, xi, q, d, h)
 
-%Need to check if mass
-
+% Site 1
+% pipe diameter
+% pipe friction factor (quality)
+% turbine efficiency
+% turbine flow rate (1:1?:500)
+% pump efficiency
+% pump flowrate
