@@ -2,7 +2,6 @@
 % Project 2
 % Team 57
 % Tyler Stagge, Nicholas Vilbrandt, Jillian Hestle, Emily Schott
-<<<<<<< HEAD
 %
 % Notes:    Dependent on site used; need to decide
 %           Do we factor in cost to this program or do we need to 
@@ -12,11 +11,12 @@
 
 
 
-=======
 % note: all bend angles assume the pipes go into the reservoir/
 %       river at an angle
->>>>>>> origin/master
 %% Input Variables
+
+clc;
+clear;
 
 nt = 0; %turbine efficiency
 np = 0; %pump efficiency
@@ -67,49 +67,49 @@ g = 9.81; %gravitational acceleration, m/s^2
 waterDensity = 1000; %density of water, kg/m^3
 
 %Site 1
-1height = 30; %m
-1distRiver = 60; %m
-1minPipeLen = 67.08; %m
-1elevAngle = 30; %degrees
-1maxArea = 360,000; %m^2
-1maxVol = 7,200,000; %m^3
-1numBends = 0;
-1bendAngles = [0]; %degrees
+height1 = 30; %m
+distRiver1 = 60; %m
+minPipeLen1 = 67.08; %m
+elevAngle1 = 30; %degrees
+maxArea1 = 360000; %m^2
+maxVol1 = 7200000; %m^3
+numBends1 = 0;
+bendAngles1 = [0]; %degrees
 
 %Site 2
-2height = 100; %m
-2distRiver = 130; %m
-2minPipeLen = 253.21; %m
-2elevAngle = 60; %degrees
-2maxArea = 25,617.38; %m^2
-2maxVol = 512,347.54; %m^3
-2numBends = 1;
-2bendAngles = [60]; %degrees
+height2 = 100; %m
+distRiver2 = 130; %m
+minPipeLen2 = 253.21; %m
+elevAngle2 = 60; %degrees
+maxArea2 = 25617.38; %m^2
+maxVol2 = 512347.54; %m^3
+numBends2 = 1;
+bendAngles2 = [60]; %degrees
 
 
 %Site 3
-3height = 65; %m
-3distRiver = 91.2; %m
-3minPipeLen = 114.56; %m
-3elevAngle = 45.46; %degrees
-3maxArea = 39,760.78; %m^2
-3maxVol = 795,215.64; %m^3
-3numBends = 1;
-3bendAngles = [115]; %degrees
+height3 = 65; %m
+distRiver3 = 91.2; %m
+minPipeLen3 = 114.56; %m
+elevAngle3 = 45.46; %degrees
+maxArea3 = 39760.78; %m^2
+maxVol3 = 795215.64; %m^3
+numBends3 = 1;
+bendAngles3 = [115]; %degrees
 
 
 %% Main Function
 
 % Input Prompts
 
-np = input('Pump efficiency: ');
+%np = input('Pump efficiency: ');
 nt = input('Turbine efficiency: ');
 diam = input('Pipe diameter in meters: ');
 len = input('Pipe length in meters: ');
 f = input('Pipe friction factor: ');
 depth = input('Reservoir depth in meters: ');
 elevation = input('Elevation of bottom of reservoir in meters: ');
-Qpump = input('Volumetric flow rate of pump in m^3/s: ');
+%Qpump = input('Volumetric flow rate of pump in m^3/s: ');
 Qturbine = input('Volumetric flow rate of turbine in m^3/s: ');
 K1 = input('Bend coefficient 1: ');
 K2 = input('Bend coefficient 2: ');
@@ -119,13 +119,18 @@ velocityUp = Qpump / pi * pow((D * 0.5), 2);
 velocityDown = Qturbine / pi * pow((D * 0.5), 2);
 waterVol = waterMass / waterDensity;
 
+Eout = 4.32E+11;
+xi = [K1, K2];
+
+massHeights = Masefield(Eout, nt, f, len, xi, Qturbine, diam, elevation);
+
 % Outputs
 
-fprintf('\nReservoir surface area: %.2f m^2\n', A);
-fprintf('Input energy: %.2f MWh\n', eIn);
-fprintf('System efficiency: %.2f\n', ns);
-fprintf('Time to fill: %.2f hours\n', timeFill);
-fprintf('Time to empty: %.2f hours\n', timeEmpty);
+%fprintf('\nReservoir surface area: %.2f m^2\n', A);
+%fprintf('Input energy: %.2f MWh\n', eIn);
+%fprintf('System efficiency: %.2f\n', ns);
+%fprintf('Time to fill: %.2f hours\n', timeFill);
+%fprintf('Time to empty: %.2f hours\n', timeEmpty);
 
 %% User-Defined Functions
 
@@ -187,12 +192,12 @@ end
 
 %input xi as an array for multiple bends
 %returns a 2D array of masses and heights and plots it
-function massHeight = Masefield(Eout, nT, f, L, D, xi, q, d, h)
+function massHeight = Masefield(Eout, nT, f, L, xi, q, d, h)
     velocity = FluidVelocity(q, d);
     lossOut = Eout(1/nT);
     heights = [2.5+h:.01:10+h];
     gravH = 9.81 .* heights;
-    frictionLoss = (f * L * velocity) / (2 * D);
+    frictionLoss = (f * L * velocity) / (2 * d);
     for i = 1:length(xi)
         lossBend(i) = xi(i) * (velocity ^ 2) / 2;
     end
@@ -203,7 +208,7 @@ function massHeight = Masefield(Eout, nT, f, L, D, xi, q, d, h)
     massHeight = [heights, masses];
 end
 
-function EIn = EnergyInRequired(m, nP, f, L, D, xi, q, d, h)
+function EIn = EnergyInRequired(m, nP, f, L, xi, q, d, h)
     velocity = FluidVelocity(q, d);
     ePotential = potentialEnergy(m, 9.81, h);
     frictionLoss = frictionLoss(f,L,velocity,d,m);
