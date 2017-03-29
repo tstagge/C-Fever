@@ -17,6 +17,10 @@ siteNnumBends = [0,1,1];
 %siteNbendAngleIs = [[0], [4], [1]]; %Temporary simplification; Note: I'm pretty sure 115 is supposed to be 25, and I'm rounding it to 20
 siteNbendAngleIs = [[0]; [4]; [1]]; %Need to add
 
+siteNroadCost = [40000, 100000, 150000];
+siteNprepCostPerArea = [0.25, 0.50, 0.90]; %The 0.90 for site 3 includes the added cost of replanting
+siteNadditionalCost = [8000, 2000, 0];
+
 siteN = length(siteNheight); %Number of sites
 
 %% CATALOG DATA INPUT
@@ -86,20 +90,18 @@ for(iSite = 1:siteN) %Index
     for(iPipeD = 1:pipesNumDiameters) %Index
         for(iPipeF = 1:pipesNumFric) %Index
             for(iTurbN = 1:turbinesNumEfficiencies) %Index
-                for(turbQ = 1:100:500) %Value! (Step will certainly be adjusted)
+                for(turbQ = 100:200:500) %Value! (Step will certainly be adjusted)
                     for(iPumpN = 1:pumpsNumEfficiencies) %Index
-                        for(pumpQ = 1:100:500) %Value! (Step will certainly be adjusted)
+                        for(pumpQ = 100:200:500) %Value! (Step will certainly be adjusted)
                             for(iBendK = 1:fittingsNumLossK) % Index
-                                %Temp var assignment
+                                %---------VARIABLE ASSIGNMENT-----------
                                 pipeD = pipesDiameters(iPipeD);
                                 pipeF = pipesDarcyFric(iPipeF);
                                 turbN = turbinesEfficiencies(iTurbN);
                                 turbQ = turbQ;
                                 pumpN = pumpsEfficiencies(iPumpN);
                                 pumpQ = pumpQ;
-                                %bendD = pipeD; %This is an assumption --
-                                %  currently build into the masefield fn in
-                                %  fact
+                                %bendD = pipeD; %assumption
                                 %bendK = fittingsLossK(iBendK);
                                 
                                 pipeL = siteNminPipeL(iSite);
@@ -128,8 +130,7 @@ for(iSite = 1:siteN) %Index
                                 %    for(bends
                                 %end
                                 
-                                % masefield(Eout, nT, f, L, xi, q, d, h)
-                                % energyInRequired(m, nP, f, L, xi, q, d, h)
+                                %----------ENERGY CALCULATIONS-----------
                                 
                                 %Note: assuming the q in the masefield
                                 % parameters is turbQ and not pumpQ
@@ -138,10 +139,26 @@ for(iSite = 1:siteN) %Index
                                 heightCOM = hm(1,1); %FIXME: currently just choosing the first height-mass combo
                                 massTot = hm(1,2);
                                 eIn = energyInRequired(massTot,pumpN,pipeF,pipeL,bendKs,pumpQ,pipeD,heightCOM);
-                                eIns = [eIns, eIn];
-                                if(eIn < leastEIn)
+                                %eIns = [eIns, eIn]; %Keeps track of all
+                                % eIns calculated, but significantly
+                                % increases runtime
+                                if(eIn < leastEIn) %Temporary until we can actually rank based on TDR
                                     leastEIn = eIn;
                                 end
+                                
+                                %-----------COST CALCULATIONS-------------
+                                hTopOfRes = siteH + (2*(heightCOM-siteH));
+                                
+                                pipeCost = pipeL * pipesCosts(iPipeD, iPipeF);
+                                turbCost = turbQ * turbinesCostPerQ(hTopOfRes, iTurbN);
+                                pumpCost = pumpQ * pumpsCostPerQ(hTopOfRes, iPumpN);
+                                bendCost = 0; %FIXME!!!
+                                siteCost = siteNroadCost(iSite) + siteNadditionalCost(iSite) + (siteNprepCostPerArea(iSite) * 1); %FIXME: where is area calculated?
+                                
+                                totalCost = pipeCost + turbCost + pumpCost + bendCost + siteCost;
+                                
+                                %-----------RATING------------------------
+                                TDR = getTotalDesignRating(eIn, totalCost);
                                 
                                 numCombos = numCombos + 1;
                             end
