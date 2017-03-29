@@ -10,14 +10,14 @@ clear;
 %% INPUTS
 
 np = input('Pump efficiency: ');
-nt = input('Turbine efficiency: ');
+%nt = input('Turbine efficiency: ');
 diam = input('Pipe diameter in meters: ');
 len = input('Pipe length in meters: ');
 f = input('Pipe friction factor: ');
 depth = input('Reservoir depth in meters: ');
 elevation = input('Elevation of bottom of reservoir in meters: ');
 Qpump = input('Volumetric flow rate of pump in m^3/s: ');
-Qturbine = input('Volumetric flow rate of turbine in m^3/s: ');
+%Qturbine = input('Volumetric flow rate of turbine in m^3/s: ');
 K1 = input('Bend coefficient 1: ');
 K2 = input('Bend coefficient 2: ');
 
@@ -28,8 +28,9 @@ K2 = input('Bend coefficient 2: ');
 
 Eout = 4.32E+11; %J
 xi = [K1, K2];
+mass = 1.07E9;
 
-massHeights = masefield(Eout, nt, f, len, xi, Qturbine, diam, elevation);
+%massHeights = masefield(Eout, nt, f, len, xi, Qturbine, diam, elevation);
 
 eInReq = energyInRequired(mass, np, f, len, xi, Qpump, diam, elevation + (depth/2));
 
@@ -37,10 +38,6 @@ waterVol = mass / 1000;
 
 area = reservoirSurfaceArea(waterVol, depth);
 
-timeFill = timeToFill(waterVol, Qpump); %h
-timeEmpty = timeToEmpty(waterVol, Qturbine); %h
-
-efficiency = 120 / eInReq; %MWh
 
 % Outputs
 

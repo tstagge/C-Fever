@@ -11,4 +11,5 @@ function EIn = energyInRequired(m, nP, f, L, xi, q, d, h)
     top = ePotential + frictionLoss1 + lossBendTotal;
     EInJ = top / (nP);
     EIn = EInJ * 2.7778E-10;
+    fprintf('Energy in required: %f\n', EIn);
 end
