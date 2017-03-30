@@ -1,25 +1,5 @@
-% PROJECT 2: HYDROELECTRIC ENERGY STORAGE SYSTEM: MANUAL MODEL
-% File:    filename.py
-% Date:    31 March 2016
-% By:      Jillian Hestle [jhestle]
-%          Emily Schott [eschott]
-%          Tyler Stagge [tstagge]
-%          Nicholas Vilbrandt [nvilbran]
-% Section  04
-% Team:    57
-%
-% ELECTRONIC SIGNATURE
-% Tyler J Stagge
-% Aditya Desai
-% Chris Schorr
-% Alex Han
-%
-% The electronic signatures above indicate that the program     
-% submitted for evaluation is the combined effort of all   
-% team members and that each member of the team was an     
-% equal participant in its creation.  In addition, each 
-% member of the team has a general understanding of                  
-% all aspects of the program development and execution.  
+% Project 2, Team 57
+% HYDROELECTRIC ENERGY STORAGE SYSTEM: MANUAL MODEL 
 %
 % This script is the manual version of our model, allowing a user to enter
 % case-specific variables for a specific energy storage system -- pump and
@@ -31,10 +11,10 @@
 
 
 %% CLEAR COMMANDS
-clc;
+%clc;
 clear;
 
-%% INPUTS
+%% MANUAL USER INPUTS
 
 np = input('Pump efficiency: ');
 nt = input('Turbine efficiency: ');

@@ -1,7 +1,17 @@
-%% Optimization, bitch!
+% Project 2, Team 57
+% HYDROELECTRIC ENERGY STORAGE SYSTEM: AUTOMATIC OPTIMIZATION MODEL 
+%
+% This script is the manual version of our model, allowing a user to enter
+% case-specific variables for a specific energy storage system -- pump and
+% turbine efficiencies, pump and turbine volumetric flow rates, pipe
+% length, pipe friction coeffcient, bend angles, bend loss coefficients, 
+% reservoir elevation, reservoir height, etc -- and calculating a variety
+% of system characteristics -- namely reservoir area, required input
+% energy, time-to-fill, time-to-drain, total system efficiency, etc.
 
 %% CLEAR COMMANDS
-clc; clear;
+%clc;
+clear;
 
 %% CATALOG DATA INPUT
 
@@ -91,18 +101,7 @@ end
 
 %% DESIGN ITERATION
 
-%eOut = 4.32E+11; %J
-eOut = 120; %MWh
-
-% Site
-% pipe diameter
-% pipe friction factor (quality)
-% turbine efficiency
-% turbine flow rate (1:1?:500)
-% pump efficiency
-% pump flowrate
-% bend diameter = pipe diameter
-% bend loss coefficient
+eOut = 120; %MWh; 4.32E+11 in J
 
 numCombos = 0;
 numValid = 0;
@@ -111,68 +110,35 @@ allCosts = [];
 allEfficiencies = [];
 
 maxTDR = 0;
-maxEfficiency = 0;
+maxEff = 0;
 minCost = 10000000000000000;
 
-optPipeD = 0;
-optPipeF = 0;
-optTurbN = 0;
-optTurbQ = 0;
-optPumpN = 0;
-optPumpQ = 0;
-optBendKs = [];
-optSite = 0;
-optM = 0;
-optHWall = 0;
-optCost = 0;%Recall -- opt in terms of efficiency!
-optArea = 0;
-optTimeFill = 0;
-optTimeEmpty = 0;
-optEin = 0;
+%Record Arrays Legend
+% 1-Cheapest Solution; 2-Best Solution(TDR); 3-Highest Efficiency Solution
+optPipeD = [0; 0; 0];
+optPipeF = [0; 0; 0];
+optTurbN = [0; 0; 0];
+optTurbQ = [0; 0; 0];
+optPumpN = [0; 0; 0];
+optPumpQ = [0; 0; 0];
+optBendKs = [[];[];[]];
+optSite = [0; 0; 0];
+optM = [0; 0; 0];
+optHWall = [0; 0; 0];
+optCost = [0; 0; 0];
+optArea = [0; 0; 0];
+optTimeFill = [0; 0; 0];
+optTimeEmpty = [0; 0; 0];
+optEin = [0; 0; 0];
 
-cheapPipeD = 0;
-cheapPipeF = 0;
-cheapTurbN = 0;
-cheapTurbQ = 0;
-cheapPumpN = 0;
-cheapPumpQ = 0;
-cheapBendKs = [];
-cheapSite = 0;
-cheapM = 0;
-cheapHWall = 0;
-cheapCost = 0;
-cheapArea = 0;
-cheapTimeFill = 0;
-cheapTimeEmpty = 0;
-cheapEin = 0;
-
-maxPipeD = 0;
-maxPipeF = 0;
-maxTurbN = 0;
-maxTurbQ = 0;
-maxPumpN = 0;
-maxPumpQ = 0;
-maxBendKs = [];
-maxSite = 0;
-maxM = 0;
-maxHWall = 0;
-maxCost = 0;
-maxArea = 0;
-maxTimeFill = 0;
-maxTimeEmpty = 0;
-maxEin = 0;
-
-%highestN = 0;
-%eIns = [];
-
-fprintf('Starting loop from hell...\n');
+fprintf('Calculating.');
 for(iSite = 1:siteN) %Index
     for(iPipeD = 1:pipesNumDiameters) %Index
         for(iPipeF = 1:pipesNumFric) %Index
             for(iTurbN = 1:turbinesNumEfficiencies) %Index
-                for(turbQ = 100:200:500) %Value! (Step will certainly be adjusted)
+                for(turbQ = 100:100:500) %Value! (Step will certainly be adjusted)
                     for(iPumpN = 1:pumpsNumEfficiencies) %Index
-                        for(pumpQ = 100:200:500) %Value! (Step will certainly be adjusted)
+                        for(pumpQ = 100:100:500) %Value! (Step will certainly be adjusted)
                             %---------VARIABLE ASSIGNMENT-----------
                             pipeD = pipesDiameters(iPipeD);
                             pipeF = pipesDarcyFric(iPipeF);
@@ -188,7 +154,7 @@ for(iSite = 1:siteN) %Index
                             %----------ENERGY CALCULATIONS-----------
                             %masefield(Eout, nT, f, L, xi, q, d, h)
                             %energyInRequired(m, nP, f, L, xi, q, d, h)
-                            hm = masefield(eOut,turbN,pipeF,pipeL,bendKs,turbQ,pipeD,siteH); %Note: assuming the q in the masefield parameters is turbQ and not pumpQ
+                            hm = masefield(eOut,turbN,pipeF,pipeL,bendKs,turbQ,pipeD,siteH);
                             numHM = length(hm);
                             for(iHM = 1:numHM)
                                 if(hm(2,iHM) > 0) %SANITY CHECK 1; If mass > 0
@@ -198,7 +164,7 @@ for(iSite = 1:siteN) %Index
                                     timeFill = timeToFill(waterVol, pumpQ); %h
                                     timeEmpty = timeToEmpty(waterVol, turbQ); %h
                                     
-                                    if ((timeFill < 12) && (timeEmpty < 12) && (area < siteNmaxArea(iSite))) %SANITY CHECK 2
+                                    if ((timeFill < 12) && (timeEmpty < 12) && (area < siteNmaxArea(iSite))) %SANITY CHECK 2 and 3
                                         eIn = energyInRequired(hm(2,iHM),pumpN,pipeF,pipeL,bendKs,pumpQ,pipeD,hm(1,iHM));
                                         
                                         %%-----------COST CALCULATIONS-------------
@@ -227,70 +193,71 @@ for(iSite = 1:siteN) %Index
                                         totalCost = pipeCost + turbCost + pumpCost + bendCost + siteCost + wallCost;
 
                                         %-----------RATING------------------------
-                                        efficiency = 120 / eIn;
+                                        eff = 120 / eIn;
                                         TDR = getTotalDesignRating(eIn, totalCost);
                                         
-                                        %----------RECORDING OPT----------
-                                        if(TDR > maxTDR) 
-                                            maxTDR = TDR;
-                                            optPipeD = pipeD;
-                                            optPipeF = pipeF;
-                                            optTurbN = turbN;
-                                            optTurbQ = turbQ;
-                                            optPumpN = pumpN;
-                                            optPumpQ = pumpQ;
-                                            optSite = iSite;
-                                            optBendKs = bendKs;
-                                            optHWall = hm(1,iHM);
-                                            optM = hm(2,iHM);
-                                            optEff = efficiency;
-                                            optCost = totalCost;
-                                            optArea = area;
-                                            optTimeFill = timeFill;
-                                            optTimeEmpty = timeEmpty;
-                                            optEin = eIn;
-                                        end
-                                        %RECORDING MAX EFFICIENCY
-                                        if(efficiency > maxEfficiency)
-                                            maxEfficiency = efficiency;
-                                            maxPipeD = pipeD;
-                                            maxPipeF = pipeF;
-                                            maxTurbN = turbN;
-                                            maxTurbQ = turbQ;
-                                            maxPumpN = pumpN;
-                                            maxPumpQ = pumpQ;
-                                            maxSite = iSite;
-                                            maxBendKs = bendKs;
-                                            maxHWall = hm(1,iHM);
-                                            maxM = hm(2,iHM);
-                                            maxEff = efficiency;
-                                            maxCost = totalCost;
-                                            maxArea = area;
-                                            maxTimeFill = timeFill;
-                                            maxTimeEmpty = timeEmpty;
-                                            maxEin = eIn;
+                                        %------------RECORDING------------
+                                        if (totalCost < minCost) %CHEAPEST
+                                            minCost = totalCost;
+                                            optPipeD(1) = pipeD;
+                                            optPipeF(1) = pipeF;
+                                            optTurbN(1) = turbN;
+                                            optTurbQ(1) = turbQ;
+                                            optPumpN(1) = pumpN;
+                                            optPumpQ(1) = pumpQ;
+                                            optSite(1) = iSite;
+                                            optBendKs(1) = bendKs;
+                                            optHWall(1) = hm(1,iHM);
+                                            optM(1) = hm(2,iHM);
+                                            optEff(1) = eff;
+                                            optCost(1) = totalCost;
+                                            optArea(1) = area;
+                                            optTimeFill(1) = timeFill;
+                                            optTimeEmpty(1) = timeEmpty;
+                                            optEin(1) = eIn;
                                         end
                                         
-                                        %RECORDING MIN COST
-                                        if (totalCost < minCost)
-                                            minCost = totalCost;
-                                            cheapPipeD = pipeD;
-                                            cheapPipeF = pipeF;
-                                            cheapTurbN = turbN;
-                                            cheapTurbQ = turbQ;
-                                            cheapPumpN = pumpN;
-                                            cheapPumpQ = pumpQ;
-                                            cheapSite = iSite;
-                                            cheapBendKs = bendKs;
-                                            cheapHWall = hm(1,iHM);
-                                            cheapM = hm(2,iHM);
-                                            cheapEff = efficiency;
-                                            cheapCost = totalCost;
-                                            cheapArea = area;
-                                            cheapTimeFill = timeFill;
-                                            cheapTimeEmpty = timeEmpty;
-                                            cheapEin = eIn;
+                                        if(TDR > maxTDR) %BEST (TDR)
+                                            maxTDR = TDR;
+                                            optPipeD(2) = pipeD;
+                                            optPipeF(2) = pipeF;
+                                            optTurbN(2) = turbN;
+                                            optTurbQ(2) = turbQ;
+                                            optPumpN(2) = pumpN;
+                                            optPumpQ(2) = pumpQ;
+                                            optSite(2) = iSite;
+                                            optBendKs(2) = bendKs;
+                                            optHWall(2) = hm(1,iHM);
+                                            optM(2) = hm(2,iHM);
+                                            optEff(2) = eff;
+                                            optCost(2) = totalCost;
+                                            optArea(2) = area;
+                                            optTimeFill(2) = timeFill;
+                                            optTimeEmpty(2) = timeEmpty;
+                                            optEin(2) = eIn;
                                         end
+                                        
+                                        if(eff > maxEff)
+                                            maxEff = eff;
+                                            optPipeD(3) = pipeD;
+                                            optPipeF(3) = pipeF;
+                                            optTurbN(3) = turbN;
+                                            optTurbQ(3) = turbQ;
+                                            optPumpN(3) = pumpN;
+                                            optPumpQ(3) = pumpQ;
+                                            optSite(3) = iSite;
+                                            optBendKs(3) = bendKs;
+                                            optHWall(3) = hm(1,iHM);
+                                            optM(3) = hm(2,iHM);
+                                            optEff(3) = eff;
+                                            optCost(3) = totalCost;
+                                            optArea(3) = area;
+                                            optTimeFill(3) = timeFill;
+                                            optTimeEmpty(3) = timeEmpty;
+                                            optEin(3) = eIn;
+                                        end
+                                        
+                                        
                                         %allCosts = [allCosts, totalCost];
                                         %allEfficiencies = [allEfficiencies, efficiency];
                                         numValid = numValid + 1;
@@ -303,27 +270,53 @@ for(iSite = 1:siteN) %Index
                 end
             end
         end
+        fprintf('.');
     end
 end
+fprintf('DONE\n\n');
 
-fprintf('Area of Resevoir: %.2f m^2\n', optArea);
-fprintf('Ein: %.2f MWh\n', optEin);
-fprintf('Efficiency: %.2f\n', optEff);
-fprintf('Time to Fill: %.2f hr\n', optTimeFill);
-fprintf('Time to Empty: %.2f hr\n\n', optTimeEmpty);
-plot(allCosts, allEfficiencies, 'o');
+%% OUTPUTS
 
-answer = input('Would you like to know more? ', 's');
+% Calculation Stats
+fprintf('Total design combinations tried: %d\n', numCombos);
+fprintf('Total valid designs tried: %d\n', numValid);
+fprintf('Percent valid: %f%%\n', ((numValid/numCombos)*100) );
+printLine();
+fprintf('                    OPTIMUM  SOLUTION                   \n');
+fprintf('System efficiency: %.2f\n', optEff(2));
+fprintf('Total cost: $ %.2f\n\n', optCost(2));
+fprintf('Energy input required: %.2f MWh\n', optEin(2));
+fprintf('Area of resevoir: %.2f m^2\n', optArea(2));
+fprintf('Time to fill: %.2f hr\n', optTimeFill(2));
+fprintf('Time to empty: %.2f hr\n', optTimeEmpty(2));
+printLine();
+fprintf('                LEAST EXPENSIVE SOLUTION                 \n');
+fprintf('System efficiency: %.2f\n', optEff(1));
+fprintf('Total cost: $ %.2f\n\n', optCost(1));
+fprintf('Energy input required: %.2f MWh\n', optEin(1));
+fprintf('Area of resevoir: %.2f m^2\n', optArea(1));
+fprintf('Time to fill: %.2f hr\n', optTimeFill(1));
+fprintf('Time to empty: %.2f hr\n', optTimeEmpty(1));
+printLine();
+fprintf('                HIGHEST EFFICIENCY SOLUTION                \n');
+fprintf('System efficiency: %.2f\n', optEff(3));
+fprintf('Total cost: $ %.2f\n\n', optCost(3));
+fprintf('Energy input required: %.2f MWh\n', optEin(3));
+fprintf('Area of resevoir: %.2f m^2\n', optArea(3));
+fprintf('Time to fill: %.2f hr\n', optTimeFill(3));
+fprintf('Time to empty: %.2f hr\n', optTimeEmpty(3));
+printLine();
+%plot(allCosts, allEfficiencies, 'o');
 
-if (strcmp('Y', answer) == 1)
-    fprintf('Total design combinations tried: %d\n', numCombos);
-    fprintf('Total valid designs tried: %d\n', numValid);
-    fprintf('Percent valid: %f%%\n', ((numValid/numCombos)*100) );
-    fprintf('Max Total Design Rating: %f\n', maxTDR);
-    fprintf('Corresponding efficiency: %f\n', optEff);
-    fprintf('Corresponding site number: %d\n', optSite);
-    %fprintf('Minimum Energy-In found: %f\n', leastEIn);
-    fprintf('Maximum efficiency: %f\n', maxEfficiency);
-end
+% answer = input('Would you like to know more? ', 's');
+% 
+% if (strcmp('Y', answer) == 1)
+%     
+%     fprintf('Max Total Design Rating: %f\n', maxTDR);
+%     fprintf('Corresponding efficiency: %f\n', optEff);
+%     fprintf('Corresponding site number: %d\n', optSite);
+%     %fprintf('Minimum Energy-In found: %f\n', leastEIn);
+%     fprintf('Maximum efficiency: %f\n', maxEff);
+% end
 
 
