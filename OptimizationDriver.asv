@@ -107,8 +107,7 @@ eOut = 120; %MWh
 numCombos = 0;
 numValid = 0;
 
-allCosts = [];
-allEfficiencies = [];
+costVe
 
 maxTDR = 0;
 maxEfficiency = 0;
@@ -291,8 +290,6 @@ for(iSite = 1:siteN) %Index
                                             cheapTimeEmpty = timeEmpty;
                                             cheapEin = eIn;
                                         end
-                                        allCosts = [allCosts, totalCost];
-                                        allEfficiencies = [allEfficiencies, efficiency];
                                         numValid = numValid + 1;
                                     end
                                 end
@@ -311,7 +308,6 @@ fprintf('Ein: %.2f MWh\n', optEin);
 fprintf('Efficiency: %.2f\n', optEff);
 fprintf('Time to Fill: %.2f hr\n', optTimeFill);
 fprintf('Time to Empty: %.2f hr\n\n', optTimeEmpty);
-plot(allCosts, allEfficiencies, 'o');
 
 answer = input('Would you like to know more? ', 's');
 

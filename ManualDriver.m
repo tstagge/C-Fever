@@ -53,47 +53,21 @@ K2 = input('Bend coefficient 2: ');
 Eout = 4.32E+11; %J
 xi = [K1, K2];
 
-%[ [Heights]; [Masses] ]
-heightMassArray = masefield(Eout, nt, f, len, xi, Qturbine, diam, elevation);
-numHM = length(heightMassArray);
+mass = whitman(Eout, nt, f, len, xi, Qturbine, diam, elevation, depth);
 
-eIns = [];
-optEin = 1000000000;
-optWaterVol = 0;
-optArea = 0;
-optTimeFill = 0;
-optTimeEmpty = 0;
-
-%mass = 1.07E9;
-
-%WAIT, WAIT, WAIT
-for(iHM = 1:numHM)
-    if(heightMassArray(2,iHM) > 0) %SANITY CHECK 1; If mass > 0
-        waterVol = heightMassArray(2, iHM) / 1000;
-        area = reservoirSurfaceArea(waterVol, depth);
-        timeFill = timeToFill(waterVol, Qpump); %h
-        timeEmpty = timeToEmpty(waterVol, Qturbine); %h
-        eInReq = energyInRequired(mass, np, f, len, xi, Qpump, diam, elevation + (depth/2));
-        eIns = [eIns, eInReq];
-        if(eInReq < optEin)
-            optEin = eInReq;
-            optWaterVol = waterVol;
-            optArea = area;
-            optTimeFill = timeFill;
-            optTimeEmpty = timeEmpty;
-        end
-    else
-        fprintf('ERROR: These parameters result in an invalid solution.\n');
-        fprintf('       Try reducing volumetric flow rates.\n');
-    end
+if (mass < 0)
+    fprintf('ERROR: These parameters result in an invalid solution.\n');
+    fprintf('       Try reducing volumetric flow rates.\n');
+else
+    waterVol = mass / 1000;
+    area = reservoirSurfaceArea(waterVol, depth);
+    timeFill = timeToFill(waterVol, Qpump); %h
+    timeEmpty = timeToEmpty(waterVol, Qturbine); %h
+    eInReq = energyInRequired(mass, np, f, len, xi, Qpump, diam, elevation + (depth/2));
+    efficiency = 120 / eInReq;
+    fprintf('\nReservoir surface area: %.2f m^2\n', area);
+    fprintf('Input energy: %.2f MWh\n', eInReq);
+    fprintf('System efficiency: %.2f\n', efficiency);
+    fprintf('Time to fill: %.2f hours\n', timeFill);
+    fprintf('Time to empty: %.2f hours\n', timeEmpty);
 end
-   
-optEfficiency = 120 / optEin; %MWh
-
-%% OUTPUTS
-
-fprintf('\nReservoir surface area: %.2f m^2\n', optArea);
-fprintf('Input energy: %.2f MWh\n', optEin);
-fprintf('System efficiency: %.2f\n', optEfficiency);
-fprintf('Time to fill: %.2f hours\n', optTimeFill);
-fprintf('Time to empty: %.2f hours\n', optTimeEmpty);
