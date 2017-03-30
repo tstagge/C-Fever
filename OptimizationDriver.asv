@@ -15,8 +15,7 @@ clear;
 tic;
 
 %% CRITICAL CONSTANTS
-qStart = 1;
-qStep = 5;
+q
 
 %% CATALOG DATA INPUT
 
@@ -142,9 +141,9 @@ for(iSite = 1:siteN) %Index
     for(iPipeD = 1:pipesNumDiameters) %Index
         for(iPipeF = 1:pipesNumFric) %Index
             for(iTurbN = 1:turbinesNumEfficiencies) %Index
-                for(turbQ = qStart:qStep:500) %Value!
+                for(turbQ = 50:200:500) %Value! (Step will certainly be adjusted)
                     for(iPumpN = 1:pumpsNumEfficiencies) %Index
-                        for(pumpQ = qStart:qStep:500) %Value!
+                        for(pumpQ = 50:200:500) %Value! (Step will certainly be adjusted)
                             %---------VARIABLE ASSIGNMENT-----------
                             pipeD = pipesDiameters(iPipeD);
                             pipeF = pipesDarcyFric(iPipeF);
@@ -306,7 +305,7 @@ solnDisps = ['                     OPTIMUM  SOLUTION                     ';
 dispOrder = [2, 1, 3];
 for(i = 1:length(dispOrder))
     soln = dispOrder(i);
-    fprintf('%s\n', solnDisps(i,:));
+    fprintf('%s\n', solnDisps(i));
     fprintf('System efficiency: %.2f\n', optEff(soln));
     fprintf('Total cost: $ %.2f\n', optCost(soln));
     fprintf('Site number: %d\n\n', optSite(soln));
