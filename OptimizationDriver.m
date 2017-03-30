@@ -291,8 +291,8 @@ for(iSite = 1:siteN) %Index
                                             cheapTimeEmpty = timeEmpty;
                                             cheapEin = eIn;
                                         end
-                                        allCosts = [allCosts, totalCost];
-                                        allEfficiencies = [allEfficiencies, efficiency];
+                                        %allCosts = [allCosts, totalCost];
+                                        %allEfficiencies = [allEfficiencies, efficiency];
                                         numValid = numValid + 1;
                                     end
                                 end
