@@ -1,13 +1,10 @@
 % Project 2, Team 57
 % HYDROELECTRIC ENERGY STORAGE SYSTEM: AUTOMATIC OPTIMIZATION MODEL 
 %
-% This script is the manual version of our model, allowing a user to enter
-% case-specific variables for a specific energy storage system -- pump and
-% turbine efficiencies, pump and turbine volumetric flow rates, pipe
-% length, pipe friction coeffcient, bend angles, bend loss coefficients, 
-% reservoir elevation, reservoir height, etc -- and calculating a variety
-% of system characteristics -- namely reservoir area, required input
-% energy, time-to-fill, time-to-drain, total system efficiency, etc.
+% This script is the automatic version of our model that iterates through
+% every possible combination of parts and sites from the provided catalogs,
+% finding the lowest cost, highest efficiency, and highest
+% efficiency-to-cost ratio designs.
 
 %% CLEAR / TIMING COMMANDS
 clc;
@@ -15,8 +12,9 @@ clear;
 tic;
 
 %% CRITICAL CONSTANTS
-qStart = 1;
-qStep = 5;
+qStart = 27;
+qStep = 1;
+qStop = 36;
 
 %% CATALOG DATA INPUT
 
@@ -66,20 +64,19 @@ turbinesCostPerQ = turbinesRaw(2:end, 2:end); %Rows vary EPD; Columns vary quali
 %% SITE DATA
 % Might want to redo this as fileIO, but this is fine for now
 
-siteNheight = [30, 100, 65]; %m
-siteNdistRiver = [60, 130, 91.2]; %m
-siteNminPipeL = [67.08, 253.21, 114.56]; %m
-siteNelevAngle = [30, 60, 45.46]; %deg
-siteNmaxArea = [360000, 25617.38, 39760.78]; %m^2
-siteNmaxVol = [7200000, 512347.54, 795215.64]; %m^3; why not just calculate?
-siteNnumBends = [0,1,1];
-siteNbendAnglesActual = [[0]; [60]; [25]]; %deg
-siteNbendAngleIs = [[0]; [4]; [1]]; %Currently rounding 25 to 20
-siteNbendKs = [[]; []; []]; %Will be calculated in data interpretation/calculations section
+siteNheight = [30, 100, 65, 65]; %m
+siteNdistRiver = [60, 130, 91.2, 91.2]; %m
+siteNminPipeL = [67.08, 253.21, 114.56, 111.99]; %m
+%siteNmaxArea = [360000, 25617.38, 39760.78, 39760.78]; %m^2 -straight max
+siteNmaxArea = [282743.34, 58643.06, 39760.78, 39760.78]; %m^2 -- assuming circular
+siteNnumBends = [0,1,1,0];
+siteNbendAnglesActual = [[0]; [60]; [25]; [0]]; %deg
+siteNbendAngleIs = [[0]; [4]; [1]; [0]]; %Currently rounding 25 to 20
+siteNbendKs = [[]; []; []; []]; %Will be calculated in data interpretation/calculations section
 
-siteNroadCost = [40000, 100000, 150000];
-siteNprepCostPerArea = [0.25, 0.50, 0.90]; %The 0.90 for site 3 includes the added cost of replanting
-siteNadditionalCost = [8000, 2000, 0];
+siteNroadCost = [40000, 100000, 150000,150000];
+siteNprepCostPerArea = [0.25, 0.50, 0.90, 0.90]; %The 0.90 for site 3 includes the added cost of replanting
+siteNadditionalCost = [8000, 2000, 0, 163800];
 
 siteN = length(siteNheight); %Number of sites
 
@@ -111,14 +108,14 @@ eOut = 120; %MWh; 4.32E+11 in J
 numCombos = 0;
 numValid = 0;
 
-allCosts = [];
-allEfficiencies = [];
+%allCosts3 = zeros(1,6276366);
+%allEfficiencies3 = zeros(1,6276366);
 
 maxTDR = 0;
 maxEff = 0;
 minCost = 10000000000000000;
 
-%Record Arrays Legend
+%Record Arrays Legend (Only certain cases are actually stored to save time)
 % 1-Cheapest Solution; 2-Best Solution(TDR); 3-Highest Efficiency Solution
 optPipeD = [0; 0; 0];
 optPipeF = [0; 0; 0];
@@ -142,9 +139,9 @@ for(iSite = 1:siteN) %Index
     for(iPipeD = 1:pipesNumDiameters) %Index
         for(iPipeF = 1:pipesNumFric) %Index
             for(iTurbN = 1:turbinesNumEfficiencies) %Index
-                for(turbQ = qStart:qStep:500) %Value!
+                for(turbQ = qStart:qStep:qStop) %Value!
                     for(iPumpN = 1:pumpsNumEfficiencies) %Index
-                        for(pumpQ = qStart:qStep:500) %Value!
+                        for(pumpQ = qStart:qStep:qStop) %Value!
                             %---------VARIABLE ASSIGNMENT-----------
                             pipeD = pipesDiameters(iPipeD);
                             pipeF = pipesDarcyFric(iPipeF);
@@ -190,6 +187,7 @@ for(iSite = 1:siteN) %Index
                                         iTurbEPD = i;
 
                                         pipeCost = pipeL * pipesCosts(iPipeD, iPipeF);
+                                        pipeInstallCost = pipeL * 500;
                                         turbCost = turbQ * turbinesCostPerQ(iTurbEPD, iTurbN);
                                         pumpCost = pumpQ * pumpsCostPerQ(iPumpEPR, iPumpN);
                                         bendCost = 0;
@@ -202,7 +200,7 @@ for(iSite = 1:siteN) %Index
                                         siteCost = siteNroadCost(iSite) + siteNadditionalCost(iSite) + (siteNprepCostPerArea(iSite) * area); %FIXME: where is area calculated?
                                         wallCost = costOfWall(hWall, (2 * pi) * sqrt(area / pi)); 
 
-                                        totalCost = pipeCost + turbCost + pumpCost + bendCost + siteCost + wallCost;
+                                        totalCost = pipeCost + pipeInstallCost + turbCost + pumpCost + bendCost + siteCost + wallCost;
 
                                         %-----------RATING------------------------
                                         eff = 120 / eIn;
@@ -219,7 +217,7 @@ for(iSite = 1:siteN) %Index
                                             optPumpQ(1) = pumpQ;
                                             optSite(1) = iSite;
                                             optBendKs(1) = bendKs;
-                                            optHWall(1) = hm(1,iHM);
+                                            optHWall(1) = hWall;
                                             optM(1) = hm(2,iHM);
                                             optEff(1) = eff;
                                             optCost(1) = totalCost;
@@ -240,7 +238,7 @@ for(iSite = 1:siteN) %Index
                                             optPumpQ(2) = pumpQ;
                                             optSite(2) = iSite;
                                             optBendKs(2) = bendKs;
-                                            optHWall(2) = hm(1,iHM);
+                                            optHWall(2) = hWall;
                                             optM(2) = hm(2,iHM);
                                             optEff(2) = eff;
                                             optCost(2) = totalCost;
@@ -261,7 +259,7 @@ for(iSite = 1:siteN) %Index
                                             optPumpQ(3) = pumpQ;
                                             optSite(3) = iSite;
                                             optBendKs(3) = bendKs;
-                                            optHWall(3) = hm(1,iHM);
+                                            optHWall(3) = hWall;
                                             optM(3) = hm(2,iHM);
                                             optEff(3) = eff;
                                             optCost(3) = totalCost;
@@ -272,10 +270,11 @@ for(iSite = 1:siteN) %Index
                                             optTDR(3) = TDR;
                                         end
                                         
-                                        
-                                        %allCosts = [allCosts, totalCost];
-                                        %allEfficiencies = [allEfficiencies, efficiency];
                                         numValid = numValid + 1;
+                                        
+                                        %allCosts3(numValid) = totalCost;
+                                        %allEfficiencies3(numValid) = eff;
+                                        
                                     end
                                 end
                                 numCombos = numCombos + 1;
@@ -306,7 +305,7 @@ solnDisps = ['                     OPTIMUM  SOLUTION                     ';
 dispOrder = [2, 1, 3];
 for(i = 1:length(dispOrder))
     soln = dispOrder(i);
-    fprintf('%s\n', solnDisps(i,:));
+    fprintf('%s\n', solnDisps(i,:)); %Which solution
     fprintf('System efficiency: %.2f\n', optEff(soln));
     fprintf('Total cost: $ %.2f\n', optCost(soln));
     fprintf('Site number: %d\n\n', optSite(soln));
@@ -317,17 +316,47 @@ for(i = 1:length(dispOrder))
     printLine();
 end
 
-%plot(allCosts, allEfficiencies, 'o');
+fprintf('Would you like a more detailed report?\n');
+fprintf('\t1: Yes\n');
+fprintf('\t2: No, return to root menu\n');
+fprintf('\t0: No, EXIT\n');
+query = input('Enter option number: ');
+switch(query)
+    case 1
+        printDoubleLine();
+        fprintf('                      COMPLETE REPORT\n');
+        printLine();
+        for(i = 1:length(dispOrder))
+            soln = dispOrder(i);
+            fprintf('%s\n', solnDisps(i,:)); %Which solution
+            fprintf('System efficiency: %.2f\n', optEff(soln));
+            fprintf('Total cost: $ %.2f\n', optCost(soln));
+            fprintf('Total design rating: %.4f\n', optTDR(soln));
+            fprintf('Site number: %d\n\n', optSite(soln));
+            fprintf('Energy input required: %.2f MWh\n', optEin(soln));
+            fprintf('Area of resevoir: %.2f m^2\n', optArea(soln));
+            fprintf('Time to fill: %.2f hr\n', optTimeFill(soln));
+            fprintf('Time to empty: %.2f hr\n\n', optTimeEmpty(soln));
+            
+            fprintf('Pipe diameter: %.2f m\n', optPipeD(soln));
+            fprintf('Pipe friction coeff.: %.4f \n', optPipeF(soln));
+            fprintf('Bend loss coeff.(s): %.4f \n', optBendKs(soln));
+            fprintf('Pump efficiency: %.2f \n', optPumpN(soln));
+            fprintf('Pump flow rate: %.2f (m^3)/s\n', optPumpQ(soln));
+            fprintf('Turbine efficiency: %.2f \n', optTurbN(soln));
+            fprintf('Turbine flow rate: %.2f (m^3)/s\n\n', optTurbQ(soln));
+            
+            fprintf('Height of reservoir wall: %.2f m\n', optHWall(soln));
+            fprintf('Total mass of water stored: %.2f kg\n', optM(soln));
+            printLine();
+        end
+    case 2
+        Proj2_SolarHydro_Team57;
+    otherwise
+        fprintf('\nPROGRAM TERMINATED\n');
+        printDoubleLine();
+end
 
-% answer = input('Would you like to know more? ', 's');
-% 
-% if (strcmp('Y', answer) == 1)
-%     
-%     fprintf('Max Total Design Rating: %f\n', maxTDR);
-%     fprintf('Corresponding efficiency: %f\n', optEff);
-%     fprintf('Corresponding site number: %d\n', optSite);
-%     %fprintf('Minimum Energy-In found: %f\n', leastEIn);
-%     fprintf('Maximum efficiency: %f\n', maxEff);
-% end
+%plot(allCosts, allEfficiencies, 'o');
 
 

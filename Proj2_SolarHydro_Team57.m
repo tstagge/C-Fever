@@ -9,10 +9,10 @@
 % Team:    57
 %
 % ELECTRONIC SIGNATURE
-% Tyler J Stagge
-% Aditya Desai
-% Chris Schorr
-% Alex Han
+% Jillian Hestle
+% Emily Schott
+% Tyler Stagge
+% Nicholas Vilbrandt
 %
 % The electronic signatures above indicate that the program     
 % submitted for evaluation is the combined effort of all   
