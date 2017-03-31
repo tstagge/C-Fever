@@ -8,13 +8,13 @@
 
 %% CLEAR / TIMING COMMANDS
 clc;
-clear;
+%clear;
 tic;
 
 %% CRITICAL CONSTANTS
-qStart = 27;
-qStep = 1;
-qStop = 36;
+qStart = 50;
+qStep = 100;
+qStop = 500;
 
 %% CATALOG DATA INPUT
 
@@ -108,8 +108,8 @@ eOut = 120; %MWh; 4.32E+11 in J
 numCombos = 0;
 numValid = 0;
 
-%allCosts3 = zeros(1,6276366);
-%allEfficiencies3 = zeros(1,6276366);
+%allCosts4 = zeros(1,5752326);
+%allEfficiencies4 = zeros(1,5752326);
 
 maxTDR = 0;
 maxEff = 0;
@@ -272,8 +272,8 @@ for(iSite = 1:siteN) %Index
                                         
                                         numValid = numValid + 1;
                                         
-                                        %allCosts3(numValid) = totalCost;
-                                        %allEfficiencies3(numValid) = eff;
+                                        %allCosts4(numValid) = totalCost;
+                                        %allEfficiencies4(numValid) = eff;
                                         
                                     end
                                 end
