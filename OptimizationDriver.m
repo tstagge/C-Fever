@@ -13,7 +13,7 @@ tic;
 
 %% CRITICAL CONSTANTS
 qStart = 50;
-qStep = 100;
+qStep = 200;
 qStop = 500;
 
 %% CATALOG DATA INPUT
